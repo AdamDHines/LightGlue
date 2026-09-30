@@ -118,8 +118,8 @@ class SuperPoint(Extractor):
 
     required_data_keys = ["image"]
 
-    def __init__(self, **conf):
-        super().__init__(**conf)  # Update with default configuration.
+    def __init__(self, ckpt_path='./segmentation/ckpt/superpoint_lightglue.pth', **conf):
+        super().__init__(ckpt_path='./segmentation/ckpt/superpoint_lightglue.pth', **conf)  # Update with default configuration.
         self.relu = nn.ReLU(inplace=True)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         c1, c2, c3, c4, c5 = 64, 64, 128, 128, 256
@@ -141,8 +141,7 @@ class SuperPoint(Extractor):
             c5, self.conf.descriptor_dim, kernel_size=1, stride=1, padding=0
         )
 
-        url = "https://github.com/cvg/LightGlue/releases/download/v0.1_arxiv/superpoint_v1.pth"  # noqa
-        self.load_state_dict(torch.hub.load_state_dict_from_url(url))
+        self.load_state_dict(ckpt_path)
 
         if self.conf.max_num_keypoints is not None and self.conf.max_num_keypoints <= 0:
             raise ValueError("max_num_keypoints must be positive or None")
