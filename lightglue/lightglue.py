@@ -416,7 +416,6 @@ class LightGlue(nn.Module):
 
         if os.path.exists(ckpt_path):
             state_dict = torch.load(ckpt_path, map_location="cpu")
-            self.load_state_dict(state_dict)
         else:
             raise Exception(f"LightGlue checkpoint is not available at {ckpt_path}, please ensure you have downloaded it and placed it in the correct folder.")
 
