@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
+import os
 
 try:
     from flash_attn.modules.mha import FlashCrossAttention
@@ -345,9 +346,6 @@ class LightGlue(nn.Module):
 
     required_data_keys = ["image0", "image1"]
 
-    version = "v0.1_arxiv"
-    url = "https://github.com/cvg/LightGlue/releases/download/{}/{}.pth"
-
     features = {
         "superpoint": {
             "weights": "superpoint_lightglue",
@@ -377,7 +375,7 @@ class LightGlue(nn.Module):
         },
     }
 
-    def __init__(self, features="superpoint", **conf) -> None:
+    def __init__(self, features="superpoint", ckpt_path="./segmentation/ckpt/superpoint_lightglue.pth", **conf) -> None:
         super().__init__()
         self.conf = conf = SimpleNamespace(**{**self.default_conf, **conf})
         if features is not None:
@@ -416,18 +414,11 @@ class LightGlue(nn.Module):
             ),
         )
 
-        state_dict = None
-        if features is not None:
-            fname = f"{conf.weights}_{self.version.replace('.', '-')}.pth"
-            state_dict = torch.hub.load_state_dict_from_url(
-                self.url.format(self.version, self.conf.weights),
-                file_name=fname,
-            )
-            self.load_state_dict(state_dict, strict=False)
-        elif conf.weights is not None:
-            path = Path(__file__).parent
-            path = path / "weights/{}.pth".format(self.conf.weights)
-            state_dict = torch.load(str(path), map_location="cpu")
+        if os.path.exists(ckpt_path):
+            state_dict = torch.load(ckpt_path, map_location="cpu")
+            self.load_state_dict(state_dict)
+        else:
+            raise Exception(f"LightGlue checkpoint is not available at {ckpt_path}, please ensure you have downloaded it and placed it in the correct folder.")
 
         if state_dict:
             # rename old state dict entries
